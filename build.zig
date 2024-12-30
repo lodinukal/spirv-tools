@@ -16,28 +16,33 @@ pub fn build(b: *std.Build) void {
     const tag = target.result.os.tag;
 
     if (tag == .windows) {
-        lib.defineCMacro("SPIRV_WINDOWS", "");
+        lib.root_module.addCMacro("SPIRV_WINDOWS", "");
     } else if (tag == .linux) {
-        lib.defineCMacro("SPIRV_LINUX", "");
+        lib.root_module.addCMacro("SPIRV_LINUX", "");
     } else if (tag == .macos) {
-        lib.defineCMacro("SPIRV_MAC", "");
+        lib.root_module.addCMacro("SPIRV_MAC", "");
     } else if (tag == .ios) {
-        lib.defineCMacro("SPIRV_IOS", "");
+        lib.root_module.addCMacro("SPIRV_IOS", "");
     } else if (tag == .tvos) {
-        lib.defineCMacro("SPIRV_TVOS", "");
+        lib.root_module.addCMacro("SPIRV_TVOS", "");
     } else if (tag == .freebsd) {
-        lib.defineCMacro("SPIRV_FREEBSD", "");
+        lib.root_module.addCMacro("SPIRV_FREEBSD", "");
     } else if (tag == .openbsd) {
-        lib.defineCMacro("SPIRV_OPENBSD", "");
+        lib.root_module.addCMacro("SPIRV_OPENBSD", "");
     } else if (tag == .fuchsia) {
-        lib.defineCMacro("SPIRV_FUCHSIA", "");
+        lib.root_module.addCMacro("SPIRV_FUCHSIA", "");
     } else {
         log.err("Incompatible target platform.", .{});
         std.process.exit(1);
     }
 
-    lib.linkLibCpp();
-    lib.addCSourceFiles(.{ .files = sources });
+    if (target.result.abi == .msvc) {
+        lib.linkLibC();
+    } else {
+        lib.linkLibCpp();
+    }
+
+    lib.addCSourceFiles(.{ .files = sources, .flags = &.{"-std=c++17"} });
     lib.addIncludePath(b.path("."));
     lib.addIncludePath(b.path("include"));
     lib.addIncludePath(b.path("include-generated"));
